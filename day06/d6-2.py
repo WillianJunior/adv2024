@@ -333,8 +333,8 @@ def main():
 
     # Test all possible creates positions
     t0 = time()
-    # serial(gmap, all_creates, guard_i, guard_j)
-    parallel(gmap, all_creates, guard_i, guard_j)
+    serial(gmap, all_creates, guard_i, guard_j)
+    # parallel(gmap, all_creates, guard_i, guard_j)
     t1 = time()
 
     print(f'ran in {t1-t0:.2f}')
