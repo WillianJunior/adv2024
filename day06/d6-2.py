@@ -158,7 +158,7 @@ crate = 127
 guard_mask = 0b00000111
 route_mask = 0b01111000
 
-@jit(nopython=True)
+@jit(nopython=True, cache=True, inline='always')
 def move(gmap, guard_i, guard_j):
     # Find next guard position
     cur_guard = gmap[guard_i, guard_j] & guard_mask
@@ -265,8 +265,9 @@ def move(gmap, guard_i, guard_j):
     return next_i, next_j
 
 
-def single_try(gmap_test, new_crate, guard_i, guard_j):
-    gmap_test[new_crate] = crate
+@jit(nopython=True, cache=True, inline='always')
+def single_try(gmap_test, new_crate_i, new_crate_j, guard_i, guard_j):
+    gmap_test[new_crate_i, new_crate_j] = crate
 
     while True:
         guard_i, guard_j = move(gmap_test, guard_i, guard_j)
@@ -316,24 +317,31 @@ def main():
         # Numpy copy is lazy, thankfully....
         tries = [[gmap.copy(), nc, guard_i, guard_j] for nc in all_creates]
 
-        p = Pool(16)
+        p = Pool(8)
         ret = p.starmap(single_try, tqdm(tries))
         print(sum(ret))
 
+    @jit(nopython=True, cache=True)
     def serial(gmap, all_creates, guard_i, guard_j):
         count = 0
-        for new_crate in tqdm(all_creates):
-            # Reset the map
+        for i in range(len(all_creates)):
+            new_crate = all_creates[i]
+            
+            # copy is having the same effect as resetting without copy
+            # python must be reusing the same malloc-d area...
             gmap_test = gmap.copy()
+
             guard_i = guard_beg_i
             guard_j = guard_beg_j
 
-            count += single_try(gmap_test, new_crate, guard_i, guard_j)
+            count += single_try(gmap_test, new_crate[0], 
+                new_crate[1], guard_i, guard_j)
         print(count)
 
     # Test all possible creates positions
     t0 = time()
-    serial(gmap, all_creates, guard_i, guard_j)
+    # serial(gmap, all_creates, guard_i, guard_j)
+    serial(gmap, np.array(all_creates), guard_i, guard_j)
     # parallel(gmap, all_creates, guard_i, guard_j)
     t1 = time()
 
@@ -346,5 +354,12 @@ def main():
     # serialized numba: 17.38s
     # parallel 8 procs:  3.27s
     # parallel 16 procs: 3.48s
+
+    # Optimized serialized time: 0.60s
+
+    # perf stat python3 d6-2.py
+    # perf stat -B -e cache-references,cache-misses,cycles,
+    # instructions,branches,faults,migrations python3 d6-2.py
+
 if __name__ == '__main__':
     main()
