@@ -2,11 +2,11 @@
 
 # --- Part Two ---
 
-# Fortunately, the Elves are trying to order so much fence that they 
+# Fortunately, the Elves are trying to order so much fence that they
 # qualify for a bulk discount!
 
-# Under the bulk discount, instead of using the perimeter to calculate 
-# the price, you need to use the number of sides each region has. Each 
+# Under the bulk discount, instead of using the perimeter to calculate
+# the price, you need to use the number of sides each region has. Each
 # straight section of fence counts as a side, regardless of how long it is.
 
 # Consider this example again:
@@ -16,15 +16,15 @@
 # BBCC
 # EEEC
 
-# The region containing type A plants has 4 sides, as does each of the 
-# regions containing plants of type B, D, and E. However, the more 
+# The region containing type A plants has 4 sides, as does each of the
+# regions containing plants of type B, D, and E. However, the more
 # complex region containing the plants of type C has 8 sides!
 
-# Using the new method of calculating the per-region price by multiplying 
-# the region's area by its number of sides, regions A through E have 
+# Using the new method of calculating the per-region price by multiplying
+# the region's area by its number of sides, regions A through E have
 # prices 16, 16, 32, 4, and 12, respectively, for a total price of 80.
 
-# The second example above (full of type X and O plants) would have a 
+# The second example above (full of type X and O plants) would have a
 # total price of 436.
 
 # Here's a map that includes an E-shaped region full of type E plants:
@@ -35,8 +35,8 @@
 # EXXXX
 # EEEEE
 
-# The E-shaped region has an area of 17 and 12 sides for a price of 204. 
-# Including the two regions full of type X plants, this map has a total 
+# The E-shaped region has an area of 17 and 12 sides for a price of 204.
+# Including the two regions full of type X plants, this map has a total
 # price of 236.
 
 # This map has a total price of 368:
@@ -48,13 +48,13 @@
 # ABBAAA
 # AAAAAA
 
-# It includes two regions full of type B plants (each with 4 sides) and a 
-# single region full of type A plants (with 4 sides on the outside and 8 
-#     more sides on the inside, a total of 12 sides). Be especially careful 
-# when counting the fence around regions like the one full of type A plants; 
-# in particular, each section of fence has an in-side and an out-side, so 
-# the fence does not connect across the middle of the region (where the two 
-#     B regions touch diagonally). (The Elves would have used the Möbius 
+# It includes two regions full of type B plants (each with 4 sides) and a
+# single region full of type A plants (with 4 sides on the outside and 8
+#     more sides on the inside, a total of 12 sides). Be especially careful
+# when counting the fence around regions like the one full of type A plants;
+# in particular, each section of fence has an in-side and an out-side, so
+# the fence does not connect across the middle of the region (where the two
+#     B regions touch diagonally). (The Elves would have used the Möbius
 #     Fencing Company instead, but their contract terms were too one-sided.)
 
 # The larger example from before now has the following updated prices:
@@ -73,8 +73,6 @@
 
 # Adding these together produces its new total price of 1206.
 
-
-
 import numpy as np
 from tqdm import tqdm
 from multiprocessing import Pool
@@ -82,11 +80,14 @@ from time import time
 from numba import jit
 from collections import defaultdict
 
+
 def conv_2d(arr, conv_f):
     return [[conv_f(a) for a in line] for line in arr]
 
+
 def flatten(xss):
     return [x for xs in xss for x in xs]
+
 
 def main():
     inpt = []
@@ -95,7 +96,6 @@ def main():
 
         # Remove \n
         inpt = [i[:-1] for i in inpt]
-
 
     garden = np.array(conv_2d(inpt, lambda x: x))
     # garden = np.array(inpt)
@@ -112,165 +112,220 @@ def main():
 
         for i in range(h):
             for j in range(w):
-                plot = garden[i,j]
-                
-                if i > 0 and garden[i-1,j] == plot:
-                    if unique_garden[i-1,j] != -1 and unique_garden[i,j] == -1:
-                        unique_garden[i,j] = unique_garden[i-1,j]
+                plot = garden[i, j]
+
+                if i > 0 and garden[i - 1, j] == plot:
+                    if unique_garden[i - 1,
+                                     j] != -1 and unique_garden[i, j] == -1:
+                        unique_garden[i, j] = unique_garden[i - 1, j]
                         update += 1
                         # print(f'{i,j} up: {unique_garden[i,j]}')
                         continue
-                    elif unique_garden[i-1,j] < unique_garden[i,j]:
-                        unique_garden[i,j] = unique_garden[i-1,j]
+                    elif unique_garden[i - 1, j] < unique_garden[i, j]:
+                        unique_garden[i, j] = unique_garden[i - 1, j]
                         # print(f'{i,j} up---------------------: {unique_garden[i,j]}')
                         update += 1
                         continue
 
-
-                if j > 0 and garden[i,j-1] == plot:
-                    if unique_garden[i,j-1] != -1 and unique_garden[i,j] == -1:
-                        unique_garden[i,j] = unique_garden[i,j-1]
+                if j > 0 and garden[i, j - 1] == plot:
+                    if unique_garden[i, j -
+                                     1] != -1 and unique_garden[i, j] == -1:
+                        unique_garden[i, j] = unique_garden[i, j - 1]
                         update += 1
                         # print(f'{i,j} left: {unique_garden[i,j]}')
                         continue
-                    elif unique_garden[i,j-1] < unique_garden[i,j]:
-                        unique_garden[i,j] = unique_garden[i,j-1]
+                    elif unique_garden[i, j - 1] < unique_garden[i, j]:
+                        unique_garden[i, j] = unique_garden[i, j - 1]
                         # print(f'{i,j} left------------------: {unique_garden[i,j]}')
                         update += 1
                         continue
 
-                if i < h-1 and garden[i+1,j] == plot:
-                    if unique_garden[i+1,j] != -1 and unique_garden[i,j] == -1:
-                        unique_garden[i,j] = unique_garden[i+1,j]
+                if i < h - 1 and garden[i + 1, j] == plot:
+                    if unique_garden[i + 1,
+                                     j] != -1 and unique_garden[i, j] == -1:
+                        unique_garden[i, j] = unique_garden[i + 1, j]
                         update += 1
                         # print(f'{i,j} down: {unique_garden[i,j]}')
                         continue
-                    elif unique_garden[i+1,j] < unique_garden[i,j]:
-                        unique_garden[i,j] = unique_garden[i+1,j]
+                    elif unique_garden[i + 1, j] < unique_garden[i, j]:
+                        unique_garden[i, j] = unique_garden[i + 1, j]
                         # print(f'{i,j} down-------------------------: {unique_garden[i,j]}')
                         update += 1
                         continue
 
-                if j < w-1 and garden[i,j+1] == plot:
-                    if unique_garden[i,j+1] != -1 and unique_garden[i,j] == -1:
-                        unique_garden[i,j] = unique_garden[i,j+1]
+                if j < w - 1 and garden[i, j + 1] == plot:
+                    if unique_garden[i, j +
+                                     1] != -1 and unique_garden[i, j] == -1:
+                        unique_garden[i, j] = unique_garden[i, j + 1]
                         update += 1
                         # print(f'{i,j} right: {unique_garden[i,j]}')
                         continue
-                    elif unique_garden[i,j+1] < unique_garden[i,j]:
-                        unique_garden[i,j] = unique_garden[i,j+1]
+                    elif unique_garden[i, j + 1] < unique_garden[i, j]:
+                        unique_garden[i, j] = unique_garden[i, j + 1]
                         # print(f'{i,j} right---------------------: {unique_garden[i,j]}')
                         update += 1
                         continue
 
-                if unique_garden[i,j] == -1:
+                if unique_garden[i, j] == -1:
                     # print(f'----- new {i,j}')
-                    unique_garden[i,j] = new_plot_id
+                    unique_garden[i, j] = new_plot_id
                     new_plot_id += 1
 
-        # print(unique_garden)
-        # print(update)
-        # input()
+    print(unique_garden)
 
-    slices = []
-    # Find slices for each height
-    for i in range(h):
-        cur_slices = []
-        # cur_plot = unique_garden[i,0]
-        cur_slice_init = 0
-        cur_slice = (cur_slice_init, cur_slice_init+1)
-        for j in range(1,w):
-            if unique_garden[i,j] == unique_garden[i,j-1]:
-                cur_slice = (cur_slice_init, j+1)
-            else:
-                cur_slices.append(cur_slice)
-                cur_slice_init = j
-                cur_slice = (cur_slice_init, j+1)
-        # Add last slice
-        cur_slices.append(cur_slice)
-
-        slices.append(cur_slices)
-
-    print(slices)
-
-    # Count of fences and areas per plot
-    sides = defaultdict(lambda: 0)
+    # Count of corners and areas per plot
+    corners = defaultdict(lambda: 0)
     areas = defaultdict(lambda: 0)
-    for i, i_slices in enumerate(slices):
-        print(f'i{i} ========================================')
-        for j_slice in i_slices:
-            plot = unique_garden[i, j_slice[0]]
-            sides[plot] += 4
-            areas[plot] += j_slice[1] - j_slice[0]
 
-            if i<=0:
-                continue
+    # Checking 4 intersections
+    #   |
+    # - + -
+    #   |
 
-            print(f'slice{j_slice} ----------------------------')
+    def is_up_line(i, j, unique_garden):
+        return unique_garden[i, j] != unique_garden[i, j + 1]
 
-            for j_slice_above in slices[i-1]:
-                print(f'+++checking {j_slice_above}')
-                plot_prev = unique_garden[i-1, j_slice_above[0]]
-                # print(i, j_slice_above[0])
-                # print(unique_garden[i, j_slice_above[0]])
-                if plot_prev != plot:
-                    # Not the same plot
-                    continue
+    def is_down_line(i, j, unique_garden):
+        return unique_garden[i + 1, j] != unique_garden[i + 1, j + 1]
 
-                j_left = j_slice[0]
-                j_right = j_slice[1] - 1
+    def is_left_line(i, j, unique_garden):
+        return unique_garden[i, j] != unique_garden[i + 1, j]
 
-                above_j_left = j_slice_above[0]
-                above_j_right = j_slice_above[1] - 1
+    def is_right_line(i, j, unique_garden):
+        return unique_garden[i, j + 1] != unique_garden[i + 1, j + 1]
 
-                # Must be within
-                if j_left > above_j_right or j_right < above_j_left:
-                    continue
+    for i in range(-1, h):
+        for j in range(-1, w):
+            up_line = False
+            down_line = False
+            left_line = False
+            right_line = False
 
-                # Check left border
-                if j_left == 0 and above_j_left == 0:
-                    print('at left border')
-                    sides[plot] -= 2
+            if i < 0:
+                if j < 0:
+                    down_line = True
+                    right_line = True
+                elif j < w - 1:
+                    left_line = True
+                    right_line = True
+                    down_line = is_down_line(i, j, unique_garden)
                 else:
-                    above_plot = unique_garden[i-1, j_left]
-                    above_left_plot = unique_garden[i-1, j_left-1]
-                    if above_plot == plot and above_left_plot != plot:
-                        print('has left up')
-                        sides[plot] -= 2
+                    left_line = True
+                    down_line = True
 
-                # Check right border
-                # print(j_right)
-                # print(above_j_right)
-                # print(w)
-                if j_right == w-1 and above_j_right == w-1:
-                    print('at right border')
-                    sides[plot] -= 2
+            elif i < h - 1:
+                if j < 0:
+                    up_line = True
+                    down_line = True
+                    right_line = is_right_line(i, j, unique_garden)
+                elif j < w - 1:
+                    up_line = is_up_line(i, j, unique_garden)
+                    down_line = is_down_line(i, j, unique_garden)
+                    left_line = is_left_line(i, j, unique_garden)
+                    right_line = is_right_line(i, j, unique_garden)
                 else:
-                    if j_right >= w-1:
-                        # At the border, but without above
-                        continue
-                    above_plot = unique_garden[i-1, j_right]
-                    above_right_plot = unique_garden[i-1, j_right+1]
-                    # print(above_plot)
-                    # print(above_right_plot)
-                    if above_plot == plot and above_right_plot != plot:
-                        print('has right up')
-                        sides[plot] -= 2
+                    up_line = True
+                    down_line = True
+                    left_line = is_left_line(i, j, unique_garden)
+            else:
+                if j < 0:
+                    up_line = True
+                    right_line = True
+                elif j < w - 1:
+                    left_line = True
+                    right_line = True
+                    up_line = is_up_line(i, j, unique_garden)
+                else:
+                    up_line = True
+                    left_line = True
 
+            if up_line and down_line and left_line and right_line:
+                # CASE: all directions
+                up_left_plot = unique_garden[i, j]
+                down_left_plot = unique_garden[i + 1, j]
+                up_right_plot = unique_garden[i, j + 1]
+                down_right_plot = unique_garden[i + 1, j + 1]
 
+                corners[up_left_plot] += 1
+                corners[down_left_plot] += 1
+                corners[up_right_plot] += 1
+                corners[down_right_plot] += 1
 
+            elif down_line and left_line and right_line:
+                # CASE: 3 directions
+                down_left_plot = unique_garden[i + 1, j]
+                down_right_plot = unique_garden[i + 1, j + 1]
+                corners[down_left_plot] += 1
+                corners[down_right_plot] += 1
 
-        # print(unique_garden[0,:])
-        # print(f'areas: {areas.values()}')
-    print(f'sides: {sorted(sides.values())}')
-        # input()
+            elif up_line and left_line and right_line:
+                # CASE: 3 directions
+                up_left_plot = unique_garden[i, j]
+                up_right_plot = unique_garden[i, j + 1]
+                corners[up_left_plot] += 1
+                corners[up_right_plot] += 1
 
-    print(list(zip(areas.values(), sides.values())))
+            elif up_line and down_line and right_line:
+                # CASE: 3 directions
+                up_right_plot = unique_garden[i, j + 1]
+                down_right_plot = unique_garden[i + 1, j + 1]
+                corners[up_right_plot] += 1
+                corners[down_right_plot] += 1
+
+            elif up_line and down_line and left_line:
+                # CASE: 3 directions
+                up_left_plot = unique_garden[i, j]
+                down_left_plot = unique_garden[i + 1, j]
+                corners[up_left_plot] += 1
+                corners[down_left_plot] += 1
+
+            else:
+                # CASE: 2 directions exclusive (without 4)
+                if up_line and left_line:
+                    if i >= 0 and i < h and j >= 0 and j < w:
+                        up_left_plot = unique_garden[i, j]
+                        corners[up_left_plot] += 1
+
+                    if i + 1 >= 0 and i + 1 < h and j + 1 >= 0 and j + 1 < w:
+                        down_right_plot = unique_garden[i + 1, j + 1]
+                        corners[down_right_plot] += 1
+
+                if up_line and right_line:
+                    if i >= 0 and i < h and j + 1 >= 0 and j + 1 < w:
+                        up_right_plot = unique_garden[i, j + 1]
+                        corners[up_right_plot] += 1
+
+                    if i + 1 >= 0 and i + 1 < h and j >= 0 and j < w:
+                        down_left_plot = unique_garden[i + 1, j]
+                        corners[down_left_plot] += 1
+
+                if down_line and right_line:
+                    if i + 1 >= 0 and i + 1 < h and j + 1 >= 0 and j + 1 < w:
+                        down_right_plot = unique_garden[i + 1, j + 1]
+                        corners[down_right_plot] += 1
+
+                    if i >= 0 and i < h and j >= 0 and j < w:
+                        up_left_plot = unique_garden[i, j]
+                        corners[up_left_plot] += 1
+
+                if down_line and left_line:
+                    if i + 1 >= 0 and i + 1 < h and j >= 0 and j < w:
+                        down_left_plot = unique_garden[i + 1, j]
+                        corners[down_left_plot] += 1
+
+                    if i >= 0 and i < h and j + 1 >= 0 and j + 1 < w:
+                        up_right_plot = unique_garden[i, j + 1]
+                        corners[up_right_plot] += 1
+
+            if i >= 0 and i < h and j >= 0 and j < w:
+                areas[unique_garden[i, j]] += 1
 
     price = 0
-    for p, a in zip(sides.values(), areas.values()):
-        price += p*a
+    for p, a in zip(corners.values(), areas.values()):
+        price += p * a
 
+    # print(f'areas: {areas.values()}')
+    # print(f'corners: {corners.values()}')
     print(price)
 
 
