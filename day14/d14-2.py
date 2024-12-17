@@ -1,4 +1,4 @@
-# --- Day 14: Restroom Redoubt ---
+
 
 import numpy as np
 from tqdm import tqdm
