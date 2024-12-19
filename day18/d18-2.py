@@ -165,22 +165,29 @@ def main():
     mem_space = np.full((h,w), max_dist)
     mem_space[start_pos] = 0
 
+    dktr2D(mem_space, start_pos, end_pos=None, blockage=blockage)
+    path = find_path_from_visited(mem_space, start_pos, end_pos)
+
     n_corrupted = 0
-    path = [0]
 
     while len(path) > 0:
         n_corrupted += 1
         mem_space = np.full((h,w), max_dist)
         mem_space[start_pos] = 0
 
-        print(n_corrupted)
+        if blocks[n_corrupted-1] not in path:
+            continue
+
+        # print(n_corrupted)
         for i in range(n_corrupted):
             mem_space[blocks[i]] = blockage
         
         dktr2D(mem_space, start_pos, end_pos=None, blockage=blockage)
         path = find_path_from_visited(mem_space, start_pos, end_pos)
 
-        print(blocks[n_corrupted-1])
+    print(n_corrupted)
+    a,b = blocks[n_corrupted-1]
+    print(f'{b},{a}')
 
 
 if __name__ == '__main__':
