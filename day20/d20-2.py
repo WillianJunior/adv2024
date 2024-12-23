@@ -214,12 +214,6 @@ def main():
     dktr2D(search_space, start_pos, end_pos=None, blockage=wall)
     new_path = find_path_from_visited(search_space, start_pos, end_pos)
 
-    path_val = 99
-    path_space = set_path(search_space, new_path, path_val)
-    print(path_space)
-    print(new_path)
-    print(len(new_path) - 1)
-
     # Key: (i,j), value: global improvement
     cheat_list = dict()
     cheat_count = 0
