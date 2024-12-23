@@ -114,20 +114,15 @@ def main():
         edges_dict[pc1].append(pc2)
         edges_dict[pc2].append(pc1)
 
-        # if pc1[0] == 't':
-        #     hist_edges[pc1].append(pc2)
-        # if pc2[0] == 't':
-        #     hist_edges[pc2].append(pc1)
-
     global largest_set_len
     global largest_set
 
     largest_set_len = 0
     largest_set = None
 
-    traverse_edges = list(zip(edges_dict.keys(), edges_dict.values()))
-
-    print(traverse_edges)
+    sorted_edges_dict = dict()
+    for pc, neigh in edges_dict.items():
+        sorted_edges_dict[pc] = sorted(neigh)
 
     def full_conn(init_set, new_node):
         for n in init_set:
@@ -143,26 +138,16 @@ def main():
         global largest_set_len
         global largest_set
 
-        # print(edges, cur_set)
-
         for pc in edges_dict:
 
-            if pc in cur_set:
+            if len(cur_set) > 0 and pc < cur_set[-1]:
                 continue
-
 
             if level == 0:
                 p_bar.update(1)
             neigh = edges_dict[pc]
 
-            # I expect that it will be 13-conn, thus heuristic:
-            if len(neigh) < 13 or len(neigh) < len(cur_set):
-            # if len(neigh) < 4 or len(neigh) < len(cur_set):
-                continue
-
-            # print(f'{level*"  "}trying {pc} with {neigh}')
             if full_conn(cur_set, pc):
-                # print(f'{pc} is full_conn with {cur_set}')
                 new_set = cur_set + [pc]
 
                 get_largest_set(neigh, new_set, level + 1)
@@ -172,7 +157,7 @@ def main():
             largest_set = cur_set
             print(f'new largest_set: {sorted(largest_set)}')
 
-    get_largest_set(edges_dict.keys(), [])
+    get_largest_set(sorted(sorted_edges_dict.keys()), [])
 
     print(largest_set_len)
     print(largest_set)
