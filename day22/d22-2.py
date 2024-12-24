@@ -226,7 +226,6 @@ def main():
         inpt = [i[:-1] for i in inpt]
 
     # key: 4 changes, value, best bananas
-    all_changes = []
     all_choices_keys = set()
     all_choices = []
 
@@ -244,12 +243,14 @@ def main():
         for ii in range(1,times):
             changes.append(prices[ii]-prices[ii-1])
 
-        choices = defaultdict(lambda: 0)
+        choices = defaultdict(lambda: None)
         for ii in range(3,times-1):
             c = (changes[ii-3], changes[ii-2],
                  changes[ii-1], changes[ii])
-            choices[c] = max(prices[ii+1],
-                             choices[c])
+            
+            # Only the first choice is accepted
+            if choices[c] == None:
+                choices[c] = prices[ii+1]
 
         # print(f'{i}: {next_s}')
         # print(f'best: {max(choices.values())}')
@@ -262,7 +263,8 @@ def main():
     choices_for_all = defaultdict(lambda: 0)
     for c in tqdm(all_choices_keys):
         for monkey in all_choices:
-            choices_for_all[c] += monkey[c]
+            if monkey[c] is not None:
+                choices_for_all[c] += monkey[c]
 
     print(choices_for_all)
     print(max(choices_for_all.values()))
